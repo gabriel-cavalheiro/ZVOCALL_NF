@@ -1,0 +1,206 @@
+<mvc:View
+    controllerName="br.com.inbetta.zvocallnf.controller.Main"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core">
+
+    <Page title="{i18n>appTitle}" class="sapUiContentPadding">
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <Panel backgroundDesign="Transparent" class="sapUiNoContentPadding">
+                    <f:SimpleForm
+                        editable="true"
+                        layout="ResponsiveGridLayout"
+                        title="Filtros de Seleção"
+                        labelSpanXL="4"
+                        labelSpanL="4"
+                        labelSpanM="4"
+                        labelSpanS="12"
+                        adjustLabelSpan="false"
+                        emptySpanXL="0"
+                        emptySpanL="0"
+                        emptySpanM="0"
+                        emptySpanS="0"
+                        columnsXL="2"
+                        columnsL="2"
+                        columnsM="1">
+                        <f:content>
+                            <Label text="Período" required="true" />
+                            <DateRangeSelection
+                                id="drsPeriodo"
+                                dateValue="{view>/filtros/dataInicio}"
+                                secondDateValue="{view>/filtros/dataFim}"
+                                displayFormat="dd/MM/yyyy" />
+
+                            <Label text="Empresa (Bukrs)" />
+                            <MultiInput
+                                id="multiInputBukrs"
+                                valueHelpRequest=".onValueHelpRequestBukrs"
+                                valueHelpOnly="true" />
+
+                            <Label text="Número da NF" />
+                            <Input 
+                                id="inpNfNumero" 
+                                value="{view>/filtros/nfNumero}" />
+
+                            <Label text="Filial (Branch)" />
+                            <MultiInput
+                                id="multiInputBranch"
+                                valueHelpRequest=".onValueHelpRequestBranch"
+                                valueHelpOnly="true" />
+
+                            <Label text="Carga Inicial" />
+                            <Switch 
+                                id="swCargaInicial" 
+                                state="{view>/filtros/cargaInicial}" 
+                                customTextOn="Sim" 
+                                customTextOff="Não" />
+                        </f:content>
+                    </f:SimpleForm>
+                </Panel>
+
+                <Panel 
+                    id="panelResultado" 
+                    visible="{view>/resultadoVisivel}" 
+                    expandable="true" 
+                    expanded="true" 
+                    width="auto" 
+                    class="sapUiResponsiveMargin">
+                    <headerToolbar>
+                        <Toolbar height="3rem">
+                            <Title text="Resultado do Processamento" />
+                            <ToolbarSpacer />
+                            <Button icon="sap-icon://excel-attachment" text="Exportar" press=".onExportarResultado" />
+                        </Toolbar>
+                    </headerToolbar>
+                    <content>
+                        <l:Grid defaultSpan="XL3 L3 M6 S12" class="sapUiSmallMarginTop">
+                            <!-- Card de Status -->
+                            <VBox class="sapUiSmallMargin customCard">
+                                <HBox alignItems="Center" class="sapUiSmallMarginBottom">
+                                    <core:Icon src="sap-icon://task" size="1.5rem" class="sapUiTinyMarginEnd cardIcon" />
+                                    <Title text="Status" />
+                                </HBox>
+                                <ObjectStatus
+                                    class="sapMFontLarge"
+                                    text="{view>/resultado/Status}"
+                                    state="{= ${view>/resultado/Status} === 'Completed' ? 'Success' : (${view>/resultado/Status} === 'Error' ? 'Error' : 'Warning') }" />
+                            </VBox>
+
+                            <!-- Card de Registros Processados -->
+                            <VBox class="sapUiSmallMargin customCard">
+                                <HBox alignItems="Center" class="sapUiSmallMarginBottom">
+                                    <core:Icon src="sap-icon://number-sign" size="1.5rem" class="sapUiTinyMarginEnd cardIcon" />
+                                    <Title text="Registros Processados" />
+                                </HBox>
+                                <Text text="{view>/resultado/QuantidadeProcessada}" class="sapMFontLarge" />
+                            </VBox>
+
+                            <!-- Card de Data/Hora -->
+                            <VBox class="sapUiSmallMargin customCard">
+                                <HBox alignItems="Center" class="sapUiSmallMarginBottom">
+                                    <core:Icon src="sap-icon://fob-watch" size="1.5rem" class="sapUiTinyMarginEnd cardIcon" />
+                                    <Title text="Data/Hora" />
+                                </HBox>
+                                <Text text="{path: 'view>/resultado/DataProcessamento', type: 'sap.ui.model.type.DateTime', formatOptions: { style: 'medium' } }" class="sapMFontLarge" />
+                            </VBox>
+
+                            <!-- Card de Mensagem -->
+                            <VBox class="sapUiSmallMargin customCard">
+                                <HBox alignItems="Center" class="sapUiSmallMarginBottom">
+                                    <core:Icon src="sap-icon://message-information" size="1.5rem" class="sapUiTinyMarginEnd cardIcon" />
+                                    <Title text="Mensagem" />
+                                </HBox>
+                                <Text text="{view>/resultado/Mensagem}" class="sapMFontLarge" />
+                            </VBox>
+                        </l:Grid>
+
+                        <!-- Gráfico e Tabela -->
+                        <l:Grid defaultSpan="XL6 L6 M12 S12" class="sapUiMediumMarginTop">
+                            <!-- Gráfico de Pizza -->
+                            <VBox visible="{= ${view>/resultado/QuantidadeProcessada} > 0 }">
+                                <viz:VizFrame
+                                    xmlns:viz="sap.viz.ui5.controls"
+                                    xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds"
+                                    xmlns:viz.data="sap.viz.ui5.data"
+                                    id="vizFrame"
+                                    vizType="pie"
+                                    width="100%"
+                                    height="400px">
+                                    <viz:dataset>
+                                        <viz.data:FlattenedDataset data="{view>/resultado/graficoData}">
+                                            <viz.data:dimensions>
+                                                <viz.data:DimensionDefinition name="Status" value="{Status}" />
+                                            </viz.data:dimensions>
+                                            <viz.data:measures>
+                                                <viz.data:MeasureDefinition name="Quantidade" value="{Quantidade}" />
+                                            </viz.data:measures>
+                                        </viz.data:FlattenedDataset>
+                                    </viz:dataset>
+                                    <viz:feeds>
+                                        <viz.feeds:FeedItem uid="size" type="Measure" values="Quantidade" />
+                                        <viz.feeds:FeedItem uid="color" type="Dimension" values="Status" />
+                                    </viz:feeds>
+                                </viz:VizFrame>
+                            </VBox>
+
+                            <!-- Tabela de Detalhes -->
+                            <VBox>
+                                <Table
+                                    id="tabelaDetalhes"
+                                    items="{view>/resultado/detalhes}"
+                                    visible="{= ${view>/resultado/detalhes}.length > 0 }"
+                                    class="sapUiNoMargin">
+                                    <headerToolbar>
+                                        <Toolbar>
+                                            <Title text="Detalhes do Processamento" />
+                                        </Toolbar>
+                                    </headerToolbar>
+                                    <columns>
+                                        <Column><Text text="NF Número" /></Column>
+                                        <Column><Text text="Empresa" /></Column>
+                                        <Column><Text text="Filial" /></Column>
+                                        <Column><Text text="Status" /></Column>
+                                        <Column><Text text="Mensagem" /></Column>
+                                    </columns>
+                                    <items>
+                                        <ColumnListItem>
+                                            <cells>
+                                                <Text text="{NfNumero}" />
+                                                <Text text="{Bukrs}" />
+                                                <Text text="{Branch}" />
+                                                <ObjectStatus
+                                                    text="{Status}"
+                                                    state="{= ${Status} === 'Success' ? 'Success' : 'Error' }" />
+                                                <Text text="{Mensagem}" />
+                                            </cells>
+                                        </ColumnListItem>
+                                    </items>
+                                </Table>
+                            </VBox>
+                        </l:Grid>
+
+                    </content>
+                </Panel>
+
+            </VBox>
+        </content>
+        <footer>
+            <Toolbar>
+                <ToolbarSpacer/>
+                <Button 
+                    class="sapMBtn"
+                    text="Processar" 
+                    type="Accept" 
+                    press=".onProcessar" 
+                    icon="sap-icon://process"/>
+                <Button 
+                    text="Limpar Filtros" 
+                    press=".onLimpar" 
+                    icon="sap-icon://clear-filter"/>
+            </Toolbar>
+        </footer>
+    </Page>
+</mvc:View>

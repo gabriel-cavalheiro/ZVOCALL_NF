@@ -1,0 +1,16 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <SelectDialog
+        title="Selecione a Empresa"
+        class="sapUiPopupWithPadding"
+        items="{help>/empresas}"
+        search=".onValueHelpSearchBukrs"
+        confirm=".onValueHelpCloseBukrs"
+        cancel=".onValueHelpCloseBukrs"
+        multiSelect="true">
+        <StandardListItem
+            title="{help>text}"
+            description="{help>key}" />
+    </SelectDialog>
+</core:FragmentDefinition>

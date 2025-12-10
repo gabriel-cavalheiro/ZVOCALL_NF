@@ -1,0 +1,130 @@
+/* Estilo geral da página */
+.sapUiContentPadding {
+    background-color: #f5f7fa;
+}
+
+/* Estilo dos painéis */
+.sapMPanel {
+    border-radius: 10px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+}
+
+.sapMPanel:hover {
+    box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo dos cards de resultado */
+.customCard {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 1rem;
+    margin: 0.5rem;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease-in-out;
+}
+
+.customCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* Estilo dos títulos dos cards */
+.customCard .sapMTitle {
+    color: #333333;
+    font-weight: bold;
+}
+
+/* Estilo dos ícones dos cards */
+.customCard .sapUiIcon {
+    color: #007bff;
+}
+
+/* Estilo dos textos dos cards */
+.customCard .sapMText {
+    color: #555555;
+    font-size: 1.2rem;
+}
+
+/* Estilo do ObjectStatus */
+.sapMObjectStatus.sapMFontLarge {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Estilo dos botões */
+.sapMBtn {
+    border-radius: 5px;
+    transition: .1s ease-in-out;
+    cursor: pointer;
+}
+
+.sapMBtn:hover {
+
+    transform: scale(1.04);
+}
+
+/* Estilo do botão de processar */
+.sapMBtnEmphasized {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.sapMBtnEmphasized:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* Estilo do botão de limpar */
+.sapMBtnDefault {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #ffffff;
+}
+
+.sapMBtnDefault:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* Estilo do switch */
+.sapMSwt {
+    width: 60px;
+}
+
+/* Estilo da tabela */
+.sapMTable {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Estilo do cabeçalho da tabela */
+.sapMListTblHeader {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+.sapMListTblHeader .sapMText {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* Estilo das linhas da tabela */
+.sapMListTblRow:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.sapMPanel.sapMPage>.sapMPanelWrappingDiv {
+    animation: fadeIn 0.5s ease-in-out;
+}
