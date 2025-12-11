@@ -12,13 +12,14 @@ sap.ui.define([
     "use strict";
 
     return Controller.extend("br.com.inbetta.zvocallnf.controller.Main", {
-        
+
         onInit: function () {
             var oViewModel = new JSONModel({
                 filtros: {
                     dataInicio: null,
                     dataFim: null,
-                    nfNumero: "",
+                    nfNumeroDe: "",
+                    nfNumeroAte: "",
                     empresas: [],
                     filiais: [],
                     cargaInicial: false
@@ -28,9 +29,7 @@ sap.ui.define([
                     Status: "",
                     Mensagem: "",
                     QuantidadeProcessada: 0,
-                    DataProcessamento: null,
-                    graficoData: [],
-                    detalhes: []
+                    DataProcessamento: null
                 }
             });
             this.getView().setModel(oViewModel, "view");
@@ -45,35 +44,35 @@ sap.ui.define([
             this._loadFiliais();
         },
 
-        _loadEmpresas: function() {
+        _loadEmpresas: function () {
             var oHelpModel = this.getView().getModel("help");
             var oODataModel = this.getOwnerComponent().getModel();
 
             oODataModel.read("/ZshBukrsSet", {
-                success: function(oData) {
-                    var aEmpresas = oData.results.map(function(oItem) {
+                success: function (oData) {
+                    var aEmpresas = oData.results.map(function (oItem) {
                         return { key: oItem.Bukrs, text: oItem.Butxt };
                     });
                     oHelpModel.setProperty("/empresas", aEmpresas);
                 },
-                error: function() {
+                error: function () {
                     MessageBox.error("Erro ao carregar a lista de empresas do backend.");
                 }
             });
         },
 
-        _loadFiliais: function() {
+        _loadFiliais: function () {
             var oHelpModel = this.getView().getModel("help");
             var oODataModel = this.getOwnerComponent().getModel();
 
             oODataModel.read("/YpmtlBranchSet", {
-                success: function(oData) {
-                    var aFiliais = oData.results.map(function(oItem) {
+                success: function (oData) {
+                    var aFiliais = oData.results.map(function (oItem) {
                         return { key: oItem.Branch, text: oItem.Name };
                     });
                     oHelpModel.setProperty("/filiais", aFiliais);
                 },
-                error: function() {
+                error: function () {
                     MessageBox.error("Erro ao carregar a lista de filiais do backend.");
                 }
             });
@@ -98,14 +97,14 @@ sap.ui.define([
             var aSelectedItems = oEvent.getParameter("selectedItems");
             var oViewModel = this.getView().getModel("view");
             var aEmpresas = [];
-            
+
             oMultiInput.removeAllTokens();
             if (aSelectedItems && aSelectedItems.length > 0) {
                 aSelectedItems.forEach(function (oItem) {
                     var oContext = oItem.getBindingContext("help");
                     var sKey = oContext.getProperty("key");
                     var sText = oContext.getProperty("text");
-                    
+
                     oMultiInput.addToken(new Token({ key: sKey, text: sText }));
                     aEmpresas.push({ key: sKey, text: sText });
                 });
@@ -139,7 +138,7 @@ sap.ui.define([
                     var oContext = oItem.getBindingContext("help");
                     var sKey = oContext.getProperty("key");
                     var sText = oContext.getProperty("text");
-                    
+
                     oMultiInput.addToken(new Token({ key: sKey, text: sText }));
                     aFiliais.push({ key: sKey, text: sText });
                 });
@@ -147,7 +146,7 @@ sap.ui.define([
             oViewModel.setProperty("/filtros/filiais", aFiliais);
         },
 
-        _formatDateToOData: function(oDate) {
+        _formatDateToOData: function (oDate) {
             if (!oDate) return "";
             var sYear = oDate.getFullYear();
             var sMonth = ("0" + (oDate.getMonth() + 1)).slice(-2);
@@ -162,11 +161,12 @@ sap.ui.define([
 
             var bTemDataInicio = oFiltros.dataInicio !== null && oFiltros.dataInicio !== undefined;
             var bTemDataFim = oFiltros.dataFim !== null && oFiltros.dataFim !== undefined;
-            var bTemNfNumero = oFiltros.nfNumero && oFiltros.nfNumero.trim().length > 0;
+            var bTemNfNumeroDe = oFiltros.nfNumeroDe && oFiltros.nfNumeroDe.trim().length > 0;
+            var bTemNfNumeroAte = oFiltros.nfNumeroAte && oFiltros.nfNumeroAte.trim().length > 0;
             var bTemEmpresas = oFiltros.empresas && oFiltros.empresas.length > 0;
             var bTemFiliais = oFiltros.filiais && oFiltros.filiais.length > 0;
 
-            if (!bTemDataInicio && !bTemNfNumero && !bTemEmpresas && !bTemFiliais) {
+            if (!bTemDataInicio && !bTemNfNumeroDe && !bTemNfNumeroAte && !bTemEmpresas && !bTemFiliais) {
                 MessageBox.warning("Por favor, preencha pelo menos um filtro para processar.");
                 return;
             }
@@ -186,50 +186,54 @@ sap.ui.define([
 
             MessageToast.show("Iniciando processamento...");
 
+            var sNfNumero = "";
+            if (bTemNfNumeroDe && bTemNfNumeroAte) {
+                sNfNumero = oFiltros.nfNumeroDe + "-" + oFiltros.nfNumeroAte;
+            } else if (bTemNfNumeroDe) {
+                sNfNumero = oFiltros.nfNumeroDe;
+            } else if (bTemNfNumeroAte) {
+                sNfNumero = oFiltros.nfNumeroAte;
+            }
+
             var oPayload = {
                 DataInicio: bTemDataInicio ? this._formatDateToOData(oFiltros.dataInicio) : "",
                 DataFim: bTemDataFim ? this._formatDateToOData(oFiltros.dataFim) : "",
-                NfNumero: oFiltros.nfNumero || "",
-                Bukrs: oFiltros.empresas.map(function(e) { return e.key; }).join(","),
-                Branch: oFiltros.filiais.map(function(f) { return f.key; }).join(","),
+                NfNumero: sNfNumero,
+                Bukrs: oFiltros.empresas.map(function (e) { return e.key; }).join(","),
+                Branch: oFiltros.filiais.map(function (f) { return f.key; }).join(","),
                 CargaInicial: oFiltros.cargaInicial ? "true" : "false"
             };
 
             this._callFunctionImport(oPayload);
         },
 
-        _callFunctionImport: function(oPayload) {
+        _callFunctionImport: function (oPayload) {
             var oODataModel = this.getOwnerComponent().getModel();
             var oViewModel = this.getView().getModel("view");
 
             oODataModel.create("/ProcessarNotasSet", oPayload, {
-                success: function(oData, oResponse) {
+                success: function (oData, oResponse) {
                     var iStatusCode = oResponse.statusCode;
-                    
+
                     var oResult = {
                         Status: oData.Status,
                         Mensagem: oData.Mensagem,
                         QuantidadeProcessada: parseInt(oData.QuantidadeProcessada) || 0,
-                        DataProcessamento: oData.DataProcessamento,
-                        graficoData: [
-                            { Status: "Sucesso", Quantidade: parseInt(oData.QuantidadeProcessada) || 0 },
-                            { Status: "Erro", Quantidade: 0 } // Simulado
-                        ],
-                        detalhes: [] // Simulado
+                        DataProcessamento: oData.DataProcessamento
                     };
 
                     oViewModel.setProperty("/resultado", oResult);
                     oViewModel.setProperty("/resultadoVisivel", true);
 
-                    if (iStatusCode === 201 && oData.Status === 'Completed') {
+                    if (iStatusCode === 201 && oData.Status === 'Sucesso') {
                         MessageToast.show("Processamento concluído com sucesso!");
-                    } else if (iStatusCode === 204 || oData.Status === 'Warning') {
+                    } else if (iStatusCode === 204 || oData.Status === 'Aviso') {
                         MessageBox.warning(oData.Mensagem);
                     } else {
                         MessageBox.error(oData.Mensagem);
                     }
                 },
-                error: function(oError) {
+                error: function (oError) {
                     var sErrorMessage = "Erro ao comunicar com o backend.";
                     try {
                         var oErrorResponse = JSON.parse(oError.responseText);
@@ -246,7 +250,7 @@ sap.ui.define([
         onLimpar: function () {
             var oView = this.getView();
             var oViewModel = oView.getModel("view");
-            
+
             this.byId("multiInputBukrs").removeAllTokens();
             this.byId("multiInputBranch").removeAllTokens();
 
@@ -254,7 +258,8 @@ sap.ui.define([
                 filtros: {
                     dataInicio: null,
                     dataFim: null,
-                    nfNumero: "",
+                    nfNumeroDe: "",
+                    nfNumeroAte: "",
                     empresas: [],
                     filiais: [],
                     cargaInicial: false
@@ -264,46 +269,12 @@ sap.ui.define([
                     Status: "",
                     Mensagem: "",
                     QuantidadeProcessada: 0,
-                    DataProcessamento: null,
-                    graficoData: [],
-                    detalhes: []
+                    DataProcessamento: null
                 }
             });
 
             MessageToast.show("Filtros limpos com sucesso!");
-        },
-
-        onExportarResultado: function() {
-            var oModel = this.getView().getModel("view");
-            var aDetalhes = oModel.getProperty("/resultado/detalhes");
-
-            if (!aDetalhes || aDetalhes.length === 0) {
-                MessageBox.warning("Não há dados para exportar.");
-                return;
-            }
-
-            var oExport = new Export({
-                exportType: new ExportTypeCSV({
-                    separatorChar: ";"
-                }),
-                models: oModel,
-                rows: {
-                    path: "/resultado/detalhes"
-                },
-                columns: [
-                    { name: "NF Número", template: { content: "{NfNumero}" } },
-                    { name: "Empresa", template: { content: "{Bukrs}" } },
-                    { name: "Filial", template: { content: "{Branch}" } },
-                    { name: "Status", template: { content: "{Status}" } },
-                    { name: "Mensagem", template: { content: "{Mensagem}" } }
-                ]
-            });
-
-            oExport.saveFile().catch(function(oError) {
-                MessageBox.error("Erro ao exportar os dados: " + oError);
-            }).then(function() {
-                oExport.destroy();
-            });
         }
+
     });
 });
